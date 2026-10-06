@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지하에서 울음이 들린다</title>
+<style>
+:root{--bg:#111;--fg:#eee;--bub:#fff;--bubt:#111}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#e9e9ee;--fg:#222}}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:env(safe-area-inset-top,0) 8px env(safe-area-inset-bottom,0);box-sizing:border-box}
+#stage{position:relative;width:min(100%,960px);aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;transition:background 1s;cursor:pointer;user-select:none}
+#title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:clamp(20px,4.5vw,42px);font-weight:bold;opacity:0;transition:opacity .6s;text-align:center;padding:0 20px;z-index:5}
+#chars{position:absolute;left:0;right:0;bottom:14%;display:flex;justify-content:center;gap:2%;flex-wrap:nowrap}
+.c{width:clamp(54px,12vw,110px);aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:bold;font-size:clamp(9px,1.6vw,15px);line-height:1.2;color:#fff;padding:4px;box-sizing:border-box;opacity:.45;transform:scale(.9);transition:all .3s;border:3px solid rgba(255,255,255,.4);animation:in .5s}
+.c.on{opacity:1;transform:scale(1.15);border-color:#fff}
+.c.shake{animation:sh .12s infinite}
+@keyframes sh{50%{transform:scale(1.15) translateX(4px) rotate(3deg)}}
+@keyframes in{from{opacity:0;transform:translateY(20px)}}
+#bub{position:absolute;max-width:62%;background:var(--bub);color:var(--bubt);border:3px solid #000;border-radius:0;padding:10px 14px;font-size:clamp(12px,2.4vw,22px);line-height:1.4;opacity:0;transition:opacity .25s;z-index:3;box-shadow:4px 4px 0 rgba(0,0,0,.4)}
+#bub:after{content:"";position:absolute;left:var(--tx,50%);bottom:-14px;margin-left:-8px;border:8px solid transparent;border-top:12px solid #000;border-bottom:0}
+#bub.shout{font-weight:bold;font-size:clamp(14px,3vw,28px)}
+#bub .n{display:block;font-size:.65em;color:#666;margin-bottom:2px}
+#narr{position:absolute;left:5%;right:5%;top:8%;text-align:center;color:#fff;background:rgba(0,0,0,.55);border:2px solid #888;padding:8px 12px;font-size:clamp(11px,2.2vw,20px);opacity:0;transition:opacity .25s;z-index:3}
+#bar{width:min(100%,960px);height:5px;background:#555;border-radius:3px;overflow:hidden}
+#bar i{display:block;height:100%;width:0;background:#e5484d}
+#ctl{display:flex;gap:8px}
+button{font:inherit;padding:6px 14px;border:2px solid currentColor;background:transparent;color:var(--fg);cursor:pointer;border-radius:0}
+</style></head><body>
+<div id="stage"><div id="title"></div><div id="narr"></div><div id="bub"></div><div id="chars"></div></div>
+<div id="bar"><i id="p"></i></div>
+<div id="ctl"><button id="b0">⏮ 처음</button><button id="b1">◀</button><button id="b2">⏸ 일시정지</button><button id="b3">▶</button></div>
+<script>
+var COL={"김응민":"#3b82f6","스피어":"#7c3aed","강래 사우루스":"#16a34a","뽀삐":"#ec4899","박정우":"#f59e0b","근육몬 박윤재":"#dc2626","조현미 선생님":"#0d9488","그래프마스터 배서진":"#64748b","학생":"#78716c"};
+var S=[
+{t:"1장 — 이상한 소리",bg:"#000",c:[],l:[["","[검은 화면] 아무것도 보이지 않는다. 아주 작은 소리가 들린다."],["강래 사우루스","……썽우……."],["","잠시 정적."],["김응민","방금 뭐였어?"],["","아무도 대답하지 않는다. 다시 들린다."],["강래 사우루스","……썽우우……."],["김응민","누가 우는 거야?"],["뽀삐","……뽀뽀뽀삐……삐삐……."],["김응민","…두 명이야?"],["강래 사우루스","썽우우우우우우우우우우우!!!"],["뽀삐","뽀뽀뽀삐삐삐!!!"]]},
+{bg:"#2a2a3a",c:["김응민","박정우","강래 사우루스","뽀삐"],l:[["","[불이 켜진다.] 강래 사우루스와 뽀삐가 서로 마주 보고 있다."],["박정우","뭐 하는 거야?"],["강래 사우루스","썽우."],["뽀삐","뽀삐."],["김응민","…대화하는 건가?"]]},
+{t:"2장 — 평범했던 김응민",bg:"#3b4a5a",c:["조현미 선생님","김응민","박정우","근육몬 박윤재","그래프마스터 배서진"],l:[["","[교실] 조현미 선생님이 칠판에 문제를 쓴다. 〈성공하기 위해서는 어떻게 해야 하는가?〉"],["조현미 선생님","각자 생각해 봅시다."],["박정우","열심히 공부합니다."],["근육몬 박윤재","운동합니다."],["그래프마스터 배서진","데이터를 분석합니다."],["조현미 선생님","좋아요."],["김응민","저는 적당히 하고 싶습니다."],["조현미 선생님","그건 성공 방법이 아니죠."],["김응민","왜요?"],["조현미 선생님","사회가 그렇게 돌아가지 않으니까요."],["","김응민이 충격받는다."],["김응민","사회가… 나를 배신했어."]]},
+{t:"3장 — 목표는 있는데 방법이 없다",bg:"#4a3535",c:["김응민","박정우","강래 사우루스","스피어"],l:[["","며칠 후. 학교 전체에 경쟁 분위기가 심해진다. 시험, 성적, 실적."],["","김응민은 계속 노력한다. 하지만 결과는 나오지 않는다."],["김응민","나는 열심히 했다."],["김응민","그런데 왜 안 되는 거야?"],["박정우","다음에는 더 잘하면 돼."],["김응민","방법이 없잖아!"],["","김응민이 책상을 친다. 그 순간 뒤에서—"],["강래 사우루스","썽우우우우우우……"],["","김응민이 뒤를 돌아본다. 어둠 속에서 스피어가 나타난다."],["스피어","방법이 없다면…"],["스피어","방법을 만들면 되지."]]},
+{t:"4장 — 지하세계",bg:"#10101c",c:["김응민","스피어","강래 사우루스","뽀삐"],l:[["","스피어가 김응민을 지하로 데려간다."],["김응민","여기가 뭐야?"],["스피어","아무도 우리를 간섭하지 않는 곳."],["김응민","여기서 뭘 하는데?"],["스피어","하고 싶은 걸 하지."],["강래 사우루스","썽우……."],["뽀삐","뽀뽀뽀삐……."],["","처음에는 어색해하던 김응민이 점점 이들과 어울리기 시작한다."],["김응민","야. 이거 이렇게 하면 더 빠르지 않냐?"],["스피어","드디어 알아가는군."],["강래 사우루스","썽우우우우우우!"],["뽀삐","뽀뽀뽀삐삐삐!"]]},
+{t:"5장 — 일탈자",bg:"#3b4a5a",c:["학생","김응민","박정우"],l:[["학생","김응민 지하에 간대. 스피어랑 같이 있대."],["학생","강래 사우루스랑도 논대. 뽀삐랑 대화한다던데."],["","김응민이 교실에 들어온다."],["학생","일탈자 왔다."],["학생","지하 인간."],["","다음 날. 책상에 종이가 붙어 있다. 〈일탈자 김응민〉"],["","그다음 날. 〈위험인물 김응민〉"],["김응민","나 이제 진짜 그런 사람인가?"],["박정우","아니야. 애들이 그렇게 부르는 것뿐이야."],["","김응민이 잠시 생각하고, 종이를 찢는다."],["김응민","그럼… 진짜 일탈자가 되어주지."]]},
+{t:"6장 — 추격",bg:"#4d6a4a",c:["김응민","박정우","근육몬 박윤재"],l:[["","김응민이 학교를 빠져나간다. 박정우가 뒤따라간다."],["박정우","김응민! 돌아와!"],["","갑자기 앞에 근육몬 박윤재가 나타난다."],["근육몬 박윤재","멈춰."],["김응민","비켜."],["근육몬 박윤재","싫다."],["","박윤재가 팔을 걷는다."],["김응민","설마 싸우려고?"],["근육몬 박윤재","아니."],["","잠시 정적."],["근육몬 박윤재","설득하려고."],["김응민","…주먹으로?"],["근육몬 박윤재","말로."]]},
+{t:"7장 — 돌아갈 곳",bg:"#5a5a3a",c:["조현미 선생님","김응민","박정우","근육몬 박윤재","그래프마스터 배서진"],l:[["조현미 선생님","김응민."],["","김응민이 멈춘다."],["조현미 선생님","네가 왜 여기까지 왔는지는 알아."],["조현미 선생님","하지만 네가 혼자라고 생각할 필요는 없어."],["박정우","나는 네 친구잖아."],["근육몬 박윤재","나도 있다."],["그래프마스터 배서진","나도 있다."],["김응민","너는 왜 그래프를 들고 있어?"],["그래프마스터 배서진","친구의 상태를 시각화했다."],["김응민","…고맙다."]]},
+{t:"8장 — 열린 결말",bg:"#08080f",c:["김응민","박정우","스피어","강래 사우루스","뽀삐"],l:[["","김응민이 지하를 바라본다. 벽에는 찢어진 시험지와 낙서가 남아 있다. 처음 받았던 쪽지가 떨어져 있다."],["","앞면에는 〈지하로 내려와라.〉 뒤집어 보자 새로운 문장이 적혀 있다. 〈다시 내려와라.〉"],["김응민","…이거 누가 쓴 거야?"],["스피어","난 아닌데."],["","정적. 멀리서 울음소리가 들린다. 그런데 이상하다. 강래 사우루스는 김응민 바로 옆에 있다."],["강래 사우루스","……썽우우우우우……."],["박정우","…방금 소리."],["뽀삐","…뽀뽀뽀삐……."],["","다시 지하 깊은 곳에서— 이번에는 더 가깝다."],["","썽우우우우우우우우우……"],["박정우","가지 마."],["김응민","왜?"],["","박정우는 대답하지 못한다. 김응민이 쪽지를 꽉 쥐고 한 걸음."],["김응민","내가 처음 여기 내려왔을 때…"],["김응민","정말 내가 원해서 내려온 걸까?"],["","아무도 대답하지 않는다. 김응민이 다시 한 걸음 내려간다."],["강래 사우루스","썽우우우우우우우우우우우우……."],["뽀삐","뽀뽀뽀삐삐삐……."],["","김응민이 어둠 속으로 사라진다. 완전한 어둠."],["김응민","…이번에는 내가 선택한 거야."],["","[암전.]  ― 끝 ―"]]}
+];
+var steps=[];
+S.forEach(function(s,i){if(s.t)steps.push({s:i,title:s.t});s.l.forEach(function(l){steps.push({s:i,who:l[0],text:l[1]})})});
+var st=document.getElementById('stage'),ti=document.getElementById('title'),bub=document.getElementById('bub'),nar=document.getElementById('narr'),ch=document.getElementById('chars');
+var i=-1,playing=true,timer=null,cur=-1;
+function render(){
+ var d=steps[i],sc=S[d.s];
+ document.getElementById('p').style.width=((i+1)/steps.length*100)+'%';
+ st.style.background=sc.bg;
+ if(cur!==d.s){cur=d.s;ch.innerHTML='';sc.c.forEach(function(n){var e=document.createElement('div');e.className='c';e.dataset.n=n;e.style.background=COL[n];e.textContent=n;ch.appendChild(e)})}
+ bub.style.opacity=0;nar.style.opacity=0;
+ [].forEach.call(ch.children,function(e){e.classList.remove('on','shake')});
+ if(d.title){ti.textContent=d.title;ti.style.opacity=1;return 2000}
+ ti.style.opacity=0;
+ var dur=1500+d.text.length*95;
+ if(!d.who){nar.textContent=d.text;nar.style.opacity=1;return dur}
+ var el=[].filter.call(ch.children,function(e){return e.dataset.n===d.who})[0];
+ bub.innerHTML='<span class="n">'+d.who+'</span>'+d.text;
+ bub.className=/[!]{1}|우우우/.test(d.text)?'shout':'';
+ if(el){el.classList.add('on');if(/우우우우|삐삐삐/.test(d.text))el.classList.add('shake');
+  var sr=st.getBoundingClientRect(),er=el.getBoundingClientRect(),cx=er.left+er.width/2-sr.left;
+  bub.style.opacity=1;var w=bub.offsetWidth,l=Math.max(8,Math.min(sr.width-w-8,cx-w/2));
+  bub.style.left=l+'px';bub.style.top=(er.top-sr.top-bub.offsetHeight-24)+'px';bub.style.setProperty('--tx',(cx-l)+'px');
+ }
+ bub.style.opacity=1;return dur;
+}
+function go(n){clearTimeout(timer);i=Math.max(0,Math.min(steps.length-1,n));var d=render();
+ if(playing&&i<steps.length-1)timer=setTimeout(function(){go(i+1)},d);
+ if(i>=steps.length-1&&playing){playing=false;b2.textContent='🔁 다시보기'}}
+var b2=document.getElementById('b2');
+b2.onclick=function(){if(i>=steps.length-1){playing=true;b2.textContent='⏸ 일시정지';go(0);return}
+ playing=!playing;b2.textContent=playing?'⏸ 일시정지':'▶ 재생';go(i)};
+document.getElementById('b0').onclick=function(){cur=-1;go(0)};
+document.getElementById('b1').onclick=function(){go(i-1)};
+document.getElementById('b3').onclick=function(){go(i+1)};
+st.onclick=function(){go(i+1)};
+document.addEventListener('keydown',function(e){if(e.code==='Space'){e.preventDefault();b2.onclick()}if(e.code==='ArrowRight')go(i+1);if(e.code==='ArrowLeft')go(i-1)});
+go(0);
+</script></body></html>
